@@ -1,7 +1,7 @@
 # AutoHDR
-AutoHDR addon and effect for ReShade 5.9.2
+AutoHDR addon and effect for ReShade 5.9.2+
 
-To install add a ReShade add on path that points to the root of this repository on your local hard disk.  Alternatively copy AutoHDR.fx, AutoHDR32.addon and AutoHDR64.addon to a ReShade add on path location.
+To install add a ReShade add on path that points to the root of this repository on your local hard disk.  Alternatively copy AutoHDR.fx, AutoHDR.addon32 and AutoHDR.addon64 to a ReShade add on path location.
 
 You will also need to add a ReShade effect search path to the root of this repository on your local hard disk.
 
