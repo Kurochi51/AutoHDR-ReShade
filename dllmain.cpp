@@ -20,17 +20,17 @@
 std::unordered_set<uint64_t> g_back_buffers;
 std::mutex g_mutex;
 
-bool                    g_hdr_enable            = false;
-DXGI_HDR_METADATA_HDR10 g_hdr10_meta_data       = { 0 };
-bool                    g_hdr_support           = false;
-bool                    g_hdr_enabled           = false;
-DXGI_COLOR_SPACE_TYPE   g_colour_space          = DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709;
-float                   g_hdr_max_output_nits   = 1000.0f;
-float                   g_hdr_min_output_nits   = 0.001f;
-float                   g_hdr_max_cll           = 0.0f;
-float                   g_hdr_max_fall          = 0.0f;
+bool                    g_hdr_enable = false;
+DXGI_HDR_METADATA_HDR10 g_hdr10_meta_data = { 0 };
+bool                    g_hdr_support = false;
+bool                    g_hdr_enabled = false;
+DXGI_COLOR_SPACE_TYPE   g_colour_space = DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709;
+float                   g_hdr_max_output_nits = 1000.0f;
+float                   g_hdr_min_output_nits = 0.001f;
+float                   g_hdr_max_cll = 0.0f;
+float                   g_hdr_max_fall = 0.0f;
 
-reshade::api::device*   g_device                = nullptr;
+reshade::api::device* g_device = nullptr;
 
 typedef struct display_chromaticities
 {
@@ -49,8 +49,8 @@ inline static int dxgi_compute_intersection_area(
     int bx1, int by1, int bx2, int by2)
 {
     return  max(0, min(ax2, bx2) -
-            max(ax1, bx1))
-            * max(0, min(ay2, by2) - max(ay1, by1));
+        max(ax1, bx1))
+        * max(0, min(ay2, by2) - max(ay1, by1));
 }
 
 #if _DEBUG
@@ -102,10 +102,10 @@ bool dxgi_check_display_hdr_support(IDXGIFactory2* factory, HWND hwnd)
 bool dxgi_check_display_hdr_support(IDXGIFactory1* factory, HWND hwnd)
 #endif
 {
-    IDXGIOutput6* output6 = NULL;
-    IDXGIOutput* best_output = NULL;
-    IDXGIOutput* current_output = NULL;
-    IDXGIAdapter* dxgi_adapter = NULL;
+    IDXGIOutput6* output6 = nullptr;
+    IDXGIOutput* best_output = nullptr;
+    IDXGIOutput* current_output = nullptr;
+    IDXGIAdapter* dxgi_adapter = nullptr;
     UINT i = 0;
     bool supported = false;
     float best_intersect_area = -1;
@@ -115,29 +115,26 @@ bool dxgi_check_display_hdr_support(IDXGIFactory1* factory, HWND hwnd)
     {
         if (FAILED(CreateDXGIFactory2(0, __uuidof(IDXGIFactory2), (void**)&factory)))
         {
-            Log (L"[DXGI]: Failed to create DXGI factory\n");
+            Log(L"[DXGI]: Failed to create DXGI factory\n");
             return false;
         }
     }
 
     if (FAILED(factory->EnumAdapters(0, &dxgi_adapter)))
     {
-        Log (L"[DXGI]: Failed to enumerate adapters\n");
+        Log(L"[DXGI]: Failed to enumerate adapters\n");
         return false;
     }
 #else
-    if (!factory->IsCurrent())
+    if (!factory->IsCurrent() && FAILED(CreateDXGIFactory1(__uuidof(IDXGIFactory1), (void**)&factory)))
     {
-        if (FAILED(CreateDXGIFactory1(__uuidof(IDXGIFactory1), (void**)&factory)))
-        {
-            Log (L"[DXGI]: Failed to create DXGI factory\n");
-            return false;
-        }
+        Log(L"[DXGI]: Failed to create DXGI factory\n");
+        return false;
     }
 
     if (FAILED(factory->EnumAdapters(0, &dxgi_adapter)))
     {
-        Log (L"[DXGI]: Failed to enumerate adapters\n");
+        Log(L"[DXGI]: Failed to enumerate adapters\n");
         return false;
     }
 #endif
@@ -165,7 +162,7 @@ bool dxgi_check_display_hdr_support(IDXGIFactory1* factory, HWND hwnd)
         /* Get the rectangle bounds of current output */
         if (FAILED(current_output->GetDesc(&desc)))
         {
-            Log (L"[DXGI]: Failed to get DXGI output description\n");
+            Log(L"[DXGI]: Failed to get DXGI output description\n");
             goto error;
         }
 
@@ -206,19 +203,19 @@ bool dxgi_check_display_hdr_support(IDXGIFactory1* factory, HWND hwnd)
         }
         else
         {
-            Log (L"[DXGI]: Failed to get DXGI Output 6 description\n");
+            Log(L"[DXGI]: Failed to get DXGI Output 6 description\n");
         }
         output6->Release();
     }
     else
     {
-        Log (L"[DXGI]: Failed to get DXGI Output 6 from best output\n");
+        Log(L"[DXGI]: Failed to get DXGI Output 6 from best output\n");
     }
 
 error:
-    if(best_output) best_output->Release();
-    if(current_output) current_output->Release();
-    if(dxgi_adapter) dxgi_adapter->Release();
+    if (best_output) best_output->Release();
+    if (current_output) current_output->Release();
+    if (dxgi_adapter) dxgi_adapter->Release();
 
     return supported;
 }
@@ -239,11 +236,11 @@ void dxgi_swapchain_color_space(
             return;
         }
 
-        if((color_space_support & DXGI_SWAP_CHAIN_COLOR_SPACE_SUPPORT_FLAG_PRESENT) == DXGI_SWAP_CHAIN_COLOR_SPACE_SUPPORT_FLAG_PRESENT)
+        if ((color_space_support & DXGI_SWAP_CHAIN_COLOR_SPACE_SUPPORT_FLAG_PRESENT) == DXGI_SWAP_CHAIN_COLOR_SPACE_SUPPORT_FLAG_PRESENT)
         {
             if (FAILED(swapchain->SetColorSpace1(target_colour_space)))
             {
-                Log (L"[DXGI]: Failed to set DXGI swapchain colour space\n");
+                Log(L"[DXGI]: Failed to set DXGI swapchain colour space\n");
                 return;
             }
 
@@ -257,7 +254,7 @@ void dxgi_swapchain_color_space(
 }
 
 void dxgi_set_hdr_metadata(
-    IDXGISwapChain4*              swapchain,
+    IDXGISwapChain4* swapchain,
     bool                          hdr_supported,
     DXGI_FORMAT                   swapchain_format,
     DXGI_COLOR_SPACE_TYPE         colour_space,
@@ -273,7 +270,7 @@ void dxgi_set_hdr_metadata(
        { 0.64000f, 0.33000f, 0.30000f, 0.60000f, 0.15000f, 0.06000f, 0.31270f, 0.32900f }, /* Rec709  */
        { 0.70800f, 0.29200f, 0.17000f, 0.79700f, 0.13100f, 0.04600f, 0.31270f, 0.32900f }, /* Rec2020 */
     };
-    const display_chromaticities_t* chroma = NULL;
+    const display_chromaticities_t* chroma = nullptr;
     DXGI_HDR_METADATA_HDR10 hdr10_meta_data = { 0 };
     int selected_chroma = 0;
 
@@ -283,24 +280,24 @@ void dxgi_set_hdr_metadata(
     // Clear the hdr meta data if the monitor does not support HDR
     if (!hdr_supported)
     {
-        if (FAILED(swapchain->SetHDRMetaData(DXGI_HDR_METADATA_TYPE_NONE, 0, NULL)))
+        if (FAILED(swapchain->SetHDRMetaData(DXGI_HDR_METADATA_TYPE_NONE, 0, nullptr)))
         {
-            Log (L"[DXGI]: Failed to set HDR meta data to none\n");
+            Log(L"[DXGI]: Failed to set HDR meta data to none\n");
         }
         return;
     }
 
     // Now select the chromacity based on colour space 
-    if (swapchain_format == DXGI_FORMAT_R10G10B10A2_UNORM && 
+    if (swapchain_format == DXGI_FORMAT_R10G10B10A2_UNORM &&
         colour_space == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020)
     {
         selected_chroma = 1;
     }
     else
     {
-        if (FAILED(swapchain->SetHDRMetaData(DXGI_HDR_METADATA_TYPE_NONE, 0, NULL)))
+        if (FAILED(swapchain->SetHDRMetaData(DXGI_HDR_METADATA_TYPE_NONE, 0, nullptr)))
         {
-            Log (L"[DXGI]: Failed to set HDR meta data to none\n");
+            Log(L"[DXGI]: Failed to set HDR meta data to none\n");
         }
         return;
     }
@@ -333,10 +330,10 @@ void dxgi_set_hdr_metadata(
     hdr10_meta_data.MaxFrameAverageLightLevel =
         (UINT16)(max_fall);
 
-    if (g_hdr10_meta_data.RedPrimary[0] != hdr10_meta_data.RedPrimary[0]        || g_hdr10_meta_data.RedPrimary[1] != hdr10_meta_data.RedPrimary[1] ||
-        g_hdr10_meta_data.GreenPrimary[0] != hdr10_meta_data.GreenPrimary[0]    || g_hdr10_meta_data.GreenPrimary[1] != hdr10_meta_data.GreenPrimary[1] ||
-        g_hdr10_meta_data.BluePrimary[0] != hdr10_meta_data.BluePrimary[0]      || g_hdr10_meta_data.BluePrimary[1] != hdr10_meta_data.BluePrimary[1] ||
-        g_hdr10_meta_data.WhitePoint[0] != hdr10_meta_data.WhitePoint[0]        || g_hdr10_meta_data.WhitePoint[1] != hdr10_meta_data.WhitePoint[1] ||
+    if (g_hdr10_meta_data.RedPrimary[0] != hdr10_meta_data.RedPrimary[0] || g_hdr10_meta_data.RedPrimary[1] != hdr10_meta_data.RedPrimary[1] ||
+        g_hdr10_meta_data.GreenPrimary[0] != hdr10_meta_data.GreenPrimary[0] || g_hdr10_meta_data.GreenPrimary[1] != hdr10_meta_data.GreenPrimary[1] ||
+        g_hdr10_meta_data.BluePrimary[0] != hdr10_meta_data.BluePrimary[0] || g_hdr10_meta_data.BluePrimary[1] != hdr10_meta_data.BluePrimary[1] ||
+        g_hdr10_meta_data.WhitePoint[0] != hdr10_meta_data.WhitePoint[0] || g_hdr10_meta_data.WhitePoint[1] != hdr10_meta_data.WhitePoint[1] ||
         g_hdr10_meta_data.MaxContentLightLevel != hdr10_meta_data.MaxContentLightLevel ||
         g_hdr10_meta_data.MaxMasteringLuminance != hdr10_meta_data.MaxMasteringLuminance ||
         g_hdr10_meta_data.MinMasteringLuminance != hdr10_meta_data.MinMasteringLuminance ||
@@ -344,7 +341,7 @@ void dxgi_set_hdr_metadata(
     {
         if (FAILED(swapchain->SetHDRMetaData(DXGI_HDR_METADATA_TYPE_HDR10, sizeof(DXGI_HDR_METADATA_HDR10), &hdr10_meta_data)))
         {
-            Log (L"[DXGI]: Failed to set HDR meta data for HDR10\n");
+            Log(L"[DXGI]: Failed to set HDR meta data for HDR10\n");
             return;
         }
         g_hdr10_meta_data = hdr10_meta_data;
@@ -466,10 +463,10 @@ static bool on_create_resource_view(reshade::api::device* device, reshade::api::
 
 static void on_present(reshade::api::command_queue* queue, reshade::api::swapchain* swapchain, const reshade::api::rect* source_rect, const reshade::api::rect* dest_rect, uint32_t dirty_rect_count, const reshade::api::rect* dirty_rects)
 {
-    reshade::api::device* device    = swapchain->get_device();
+    reshade::api::device* device = swapchain->get_device();
     const reshade::api::device_api device_type = device->get_api();
 
-    if((device_type == reshade::api::device_api::d3d11) || (device_type == reshade::api::device_api::d3d12))
+    if ((device_type == reshade::api::device_api::d3d11) || (device_type == reshade::api::device_api::d3d12))
     {
         IDXGISwapChain* native_swapchain = reinterpret_cast<IDXGISwapChain*>(swapchain->get_native());
         ATL::CComPtr<IDXGISwapChain4> swapchain4;
@@ -496,7 +493,7 @@ static void on_present(reshade::api::command_queue* queue, reshade::api::swapcha
                 }
 
                 g_hdr_support = dxgi_check_display_hdr_support(factory, reinterpret_cast<HWND>(swapchain->get_hwnd()));
-                
+
                 factory->Release();
 #endif // __WINRT__
             }
